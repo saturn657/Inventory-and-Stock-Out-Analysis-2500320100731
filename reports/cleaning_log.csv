@@ -1,0 +1,17 @@
+dataset,issue,rule_applied,rows_affected
+products,Exact duplicate rows,Keep the first identical record and remove subsequent copies.,1
+products,Inconsistent whitespace in category,Trim leading and trailing whitespace.,1
+products,Inconsistent label case in category,Standardise labels to uppercase for movement_type and title case otherwise.,1
+products,Missing category,Replace missing category with 'Unclassified'.,1
+products,Negative unit_cost,Replace negative unit_cost with the median valid product unit_cost.,1
+suppliers,Exact duplicate rows,Keep the first identical record and remove subsequent copies.,1
+suppliers,Inconsistent whitespace in region,Trim leading and trailing whitespace.,1
+suppliers,Inconsistent label case in region,Standardise labels to uppercase for movement_type and title case otherwise.,1
+suppliers,Missing region,Replace missing region with 'Unknown'.,1
+inventory,Missing reserved_quantity,Fill missing reserved_quantity with 0 and record the correction.,1
+inventory,Implausible available_quantity below -1000,Recalculate from opening_quantity + received_quantity - issued_quantity.,1
+purchase_orders,Exact duplicate rows,Keep the first identical record and remove subsequent copies.,1
+purchase_orders,Missing expected_delivery_date,Impute order_date + median observed expected lead time (7 days).,1
+stock_movements,Exact duplicate rows,Keep the first identical record and remove subsequent copies.,1
+stock_movements,Inconsistent whitespace in movement_type,Trim leading and trailing whitespace.,1
+stock_movements,Inconsistent label case in movement_type,Standardise labels to uppercase for movement_type and title case otherwise.,1
