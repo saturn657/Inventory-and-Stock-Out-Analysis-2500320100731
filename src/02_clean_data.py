@@ -42,14 +42,12 @@ def clean_dataset(name, frame, logs):
     df = frame.copy()
     initial_rows = len(df)
 
-    # Remove exact duplicate records, retaining the first occurrence.
     duplicate_mask = df.duplicated(keep="first")
     add_log(logs, name, "Exact duplicate rows",
             "Keep the first identical record and remove subsequent copies.",
             duplicate_mask.sum())
     df = df.loc[~duplicate_mask].copy()
 
-    # Standardise text columns before applying field-specific rules.
     for col in df.select_dtypes(include="object").columns:
         before = df[col].copy()
         df[col] = df[col].astype("string").str.strip()
@@ -57,7 +55,17 @@ def clean_dataset(name, frame, logs):
         add_log(logs, name, f"Inconsistent whitespace in {col}",
                 "Trim leading and trailing whitespace.", changed)
         if col in {"category", "region", "movement_type"}:
-            normalised = df[col].str.upper() if col == "movement_type" else df[col].str.title()
+            if col == "movement_type":
+                normalised = df[col].str.upper()
+                synonym_mask = normalised.isin(["ISSUE", "ISSUED"])
+                add_log(
+                    logs, name, "Non-standard movement_type synonym",
+                    "Map ISSUE/ISSUED to OUT; retain IN and OUT as the only standard labels.",
+                    synonym_mask.sum()
+                )
+                normalised = normalised.replace({"ISSUE": "OUT", "ISSUED": "OUT"})
+            else:
+                normalised = df[col].str.title()
             changed = (df[col].fillna("") != normalised.fillna("")).sum()
             add_log(logs, name, f"Inconsistent label case in {col}",
                     "Standardise labels to uppercase for movement_type and title case otherwise.",
@@ -132,7 +140,6 @@ def clean_dataset(name, frame, logs):
             median_qty = pd.to_numeric(df.loc[~negative_qty, "quantity_ordered"]).median()
             df.loc[negative_qty, "quantity_ordered"] = median_qty
 
-    # Parse date fields consistently and record unparseable values for review.
     for col in DATE_COLUMNS.get(name, []):
         parsed = pd.to_datetime(df[col], errors="coerce")
         invalid = parsed.isna()
@@ -141,13 +148,11 @@ def clean_dataset(name, frame, logs):
                 invalid.sum())
         df[col] = parsed.dt.strftime("%Y-%m-%d")
 
-    # Do not fabricate missing primary identifiers.
     key = PRIMARY_KEYS[name]
     missing_key = df[key].isna() | df[key].astype("string").str.strip().eq("")
     if missing_key.any():
         raise ValueError(f"{name}: {int(missing_key.sum())} rows have missing {key}; no IDs were fabricated.")
 
-    # Restore numeric data types after transformations.
     for col in df.columns:
         if col in {"unit_cost", "rating"}:
             df[col] = pd.to_numeric(df[col], errors="coerce")
@@ -165,7 +170,6 @@ def main():
     CLEAN_DIR.mkdir(parents=True, exist_ok=True)
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     logs = []
-
     for name in PRIMARY_KEYS:
         path = RAW_DIR / f"{name}.csv"
         if not path.exists():
@@ -174,8 +178,7 @@ def main():
             )
         raw = pd.read_csv(path)
         clean = clean_dataset(name, raw, logs)
-        clean_path = CLEAN_DIR / f"{name}.csv"
-        clean.to_csv(clean_path, index=False)
+        clean.to_csv(CLEAN_DIR / f"{name}.csv", index=False)
         print(f"{name}: {len(raw):,} raw rows -> {len(clean):,} clean rows")
 
     log_df = pd.DataFrame(logs, columns=[

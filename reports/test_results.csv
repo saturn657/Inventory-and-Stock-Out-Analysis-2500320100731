@@ -1,0 +1,8 @@
+test_name,status,details
+test_primary_keys_are_unique,PASS,
+test_required_identifiers_are_present,PASS,
+test_numeric_ranges_and_movement_labels,PASS,
+test_foreign_keys_match_dimension_records,PASS,
+test_purchase_order_dates_are_valid_and_chronological,PASS,
+test_cleaning_log_documents_changes,PASS,
+test_python_totals_match_oracle_query_exports,SKIP,"Oracle reconciliation pending; missing actual Oracle query exports: Q1_inventory_stock_status_by_product_category.csv, Q3_inventory_value_by_category.csv, Q5_supplier_delivery_performance_and_average_lead_time.csv, Q7_product_level_stock_movement_totals.csv"
