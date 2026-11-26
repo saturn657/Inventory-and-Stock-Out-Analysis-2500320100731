@@ -5,6 +5,7 @@ pandas>=2.1,<3
 # Analysis, dashboards, database connectivity, and deliverables
 matplotlib>=3.8,<4
 streamlit>=1.40,<2
+plotly>=5.18,<7
 oracledb>=2.5,<4
 openpyxl>=3.1,<4
 jupyter>=1.0,<2
